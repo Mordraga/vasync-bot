@@ -24,3 +24,8 @@ class Collab(BaseModel):
     discord_ids: list[int]
     start_at_utc: datetime
     reminder_sent: bool
+
+
+class BotSettings(BaseModel):
+    reminder_lead_minutes: int
+    match_window_days: int

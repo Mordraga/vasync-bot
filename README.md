@@ -17,6 +17,11 @@ Discord's own `<t:...>` markup render them per viewer.
 - `bot/cogs/reminders.py` - schedules and (on restart) rehydrates
   confirmed-collab reminders.
 
+The reminder lead time and `/collab` match window aren't hardcoded here -
+both cogs call `VasyncApiClient.get_settings()` each time they need them,
+so changes staff make in the dashboard's admin panel take effect
+immediately without a bot restart.
+
 ## Running locally
 
 ```bash

@@ -4,7 +4,7 @@ import httpx
 
 from bot.config import Settings
 from bot.identity import CallerIdentity
-from bot.schemas import Collab, CollabMatch
+from bot.schemas import BotSettings, Collab, CollabMatch
 
 
 class VasyncApiClient:
@@ -65,3 +65,8 @@ class VasyncApiClient:
             headers=self._service_headers(),
         )
         response.raise_for_status()
+
+    async def get_settings(self) -> BotSettings:
+        response = await self._client.get("/settings", headers=self._service_headers())
+        response.raise_for_status()
+        return BotSettings.model_validate(response.json())

@@ -12,11 +12,11 @@ from bot.formatting import format_match_summary, format_window_line
 from bot.identity import identity_from_member
 from bot.schemas import CollabMatch, MatchWindow
 
-MATCH_WINDOW_DAYS = 14
+DEFAULT_MATCH_WINDOW_DAYS = 14
 MAX_SELECT_OPTIONS = 25
 
 
-def build_date_range(days_ahead: int = MATCH_WINDOW_DAYS) -> tuple[date, date]:
+def build_date_range(days_ahead: int = DEFAULT_MATCH_WINDOW_DAYS) -> tuple[date, date]:
     today = datetime.now(timezone.utc).date()
     return today, today + timedelta(days=days_ahead)
 
@@ -73,7 +73,9 @@ class Collab(commands.Cog):
 
         members = [member for member in (user1, user2, user3, user4) if member is not None]
         discord_ids = collect_participant_ids(members)
-        start_date, end_date = build_date_range()
+
+        settings = await self.bot.api.get_settings()
+        start_date, end_date = build_date_range(settings.match_window_days)
 
         caller = identity_from_member(interaction.user)
         match: CollabMatch = await self.bot.api.get_match(discord_ids, start_date, end_date, caller)
