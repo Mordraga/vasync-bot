@@ -1,6 +1,7 @@
 from bot.formatting import (
     discord_timestamp,
     format_match_summary,
+    format_plain_window_label,
     format_reminder_message,
     format_window_line,
 )
@@ -20,6 +21,15 @@ def test_format_window_line_includes_start_and_end():
     line = format_window_line(window)
     assert "<t:100:t>" in line
     assert "<t:200:t>" in line
+
+
+def test_format_plain_window_label_has_no_discord_markup():
+    window = MatchWindow(date="2026-09-20", status=2, start_unix=1789585200, end_unix=1789596000)
+    label = format_plain_window_label(window)
+    assert "<t:" not in label
+    assert "07:00 PM" in label
+    assert "10:00 PM" in label
+    assert "UTC" in label
 
 
 def test_format_match_summary_empty_windows():

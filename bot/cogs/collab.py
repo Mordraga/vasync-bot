@@ -8,7 +8,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from bot.formatting import format_match_summary, format_window_line
+from bot.formatting import format_match_summary, format_plain_window_label
 from bot.identity import identity_from_member
 from bot.schemas import CollabMatch, MatchWindow
 
@@ -33,7 +33,7 @@ class ConfirmCollabView(discord.ui.View):
 
     def _build_select(self, windows: list[MatchWindow]) -> discord.ui.Select:
         options = [
-            discord.SelectOption(label=format_window_line(window), value=str(window.start_unix))
+            discord.SelectOption(label=format_plain_window_label(window), value=str(window.start_unix))
             for window in windows
         ]
         select = discord.ui.Select(placeholder="Confirm a window...", options=options)
