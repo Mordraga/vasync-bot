@@ -1,10 +1,10 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 import httpx
 
 from bot.config import Settings
 from bot.identity import CallerIdentity
-from bot.schemas import BotSettings, Collab, CollabMatch
+from bot.schemas import BotSettings, Collab, CollabCancelResult, CollabMatch, CollabRespondResult
 
 
 class VasyncApiClient:
@@ -36,17 +36,52 @@ class VasyncApiClient:
         response.raise_for_status()
         return CollabMatch.model_validate(response.json())
 
-    async def confirm_collab(self, discord_ids: list[int], start_at_utc: datetime) -> Collab:
+    async def propose_collab(
+        self, initiator_discord_id: int, other_discord_ids: list[int], start_at_utc: datetime, thread_id: int | None
+    ) -> Collab:
         response = await self._client.post(
-            "/collab/confirm",
-            json={"discord_ids": discord_ids, "start_at_utc": start_at_utc.isoformat()},
+            "/collab/propose",
+            json={
+                "initiator_discord_id": initiator_discord_id,
+                "other_discord_ids": other_discord_ids,
+                "start_at_utc": start_at_utc.isoformat(),
+                "thread_id": thread_id,
+            },
             headers=self._service_headers(),
         )
         response.raise_for_status()
         return Collab.model_validate(response.json())
 
+    async def respond_to_collab(self, collab_id: int, discord_id: int, accept: bool) -> CollabRespondResult:
+        response = await self._client.post(
+            f"/collab/{collab_id}/respond",
+            json={"discord_id": discord_id, "accept": accept},
+            headers=self._service_headers(),
+        )
+        response.raise_for_status()
+        return CollabRespondResult.model_validate(response.json())
+
+    async def cancel_collab(self, collab_id: int, discord_id: int) -> CollabCancelResult:
+        response = await self._client.post(
+            f"/collab/{collab_id}/cancel",
+            json={"discord_id": discord_id},
+            headers=self._service_headers(),
+        )
+        response.raise_for_status()
+        return CollabCancelResult.model_validate(response.json())
+
+    async def get_collab(self, collab_id: int) -> Collab:
+        response = await self._client.get(f"/collab/{collab_id}", headers=self._service_headers())
+        response.raise_for_status()
+        return Collab.model_validate(response.json())
+
     async def list_upcoming(self) -> list[Collab]:
         response = await self._client.get("/collab/upcoming", headers=self._service_headers())
+        response.raise_for_status()
+        return [Collab.model_validate(item) for item in response.json()]
+
+    async def list_upcoming_for_user(self, discord_id: int) -> list[Collab]:
+        response = await self._client.get(f"/collab/upcoming/{discord_id}", headers=self._service_headers())
         response.raise_for_status()
         return [Collab.model_validate(item) for item in response.json()]
 
@@ -63,6 +98,21 @@ class VasyncApiClient:
             f"/users/{discord_id}",
             json={"discord_id": discord_id, "display_name": display_name, "timezone": timezone, "role": role},
             headers=self._service_headers(),
+        )
+        response.raise_for_status()
+
+    async def upsert_override(
+        self, caller: CallerIdentity, discord_id: int, override_date: date, status: int, window_start: time, window_end: time
+    ) -> None:
+        response = await self._client.put(
+            f"/users/{discord_id}/availability/overrides/{override_date.isoformat()}",
+            json={
+                "override_date": override_date.isoformat(),
+                "status": status,
+                "window_start": window_start.isoformat(),
+                "window_end": window_end.isoformat(),
+            },
+            headers=caller.as_headers(self._settings.service_token),
         )
         response.raise_for_status()
 

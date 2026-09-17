@@ -10,7 +10,7 @@ import discord
 from discord.ext import commands
 
 from bot.formatting import format_reminder_message
-from bot.schemas import Collab
+from bot.schemas import Collab, CollabStatus
 
 DEFAULT_REMINDER_LEAD = timedelta(minutes=15)
 logger = logging.getLogger(__name__)
@@ -46,14 +46,33 @@ class ReminderScheduler(commands.Cog):
         if delay > 0:
             await asyncio.sleep(delay)
 
-        start_unix = int(collab.start_at_utc.timestamp())
-        for discord_id in collab.discord_ids:
+        # Re-check live state: a participant may have withdrawn via
+        # /cancel-collab (shrinking discord_ids) or cancelled the whole
+        # thing since this task was scheduled.
+        live = await self.bot.api.get_collab(collab.id)
+        if live.status is not CollabStatus.CONFIRMED:
+            self._tasks.pop(collab.id, None)
+            return
+
+        start_unix = int(live.start_at_utc.timestamp())
+        for discord_id in live.discord_ids:
             try:
                 await notify_participant(self.bot, discord_id, start_unix)
             except discord.DiscordException:
-                logger.exception("failed to DM %s for collab %s", discord_id, collab.id)
+                logger.exception("failed to DM %s for collab %s", discord_id, live.id)
 
-        await self.bot.api.mark_reminder_sent(collab.id)
+        await self.bot.api.mark_reminder_sent(live.id)
+
+        if live.thread_id:
+            delay_to_start = (live.start_at_utc - datetime.now(timezone.utc)).total_seconds()
+            if delay_to_start > 0:
+                await asyncio.sleep(delay_to_start)
+            try:
+                thread = await self.bot.fetch_channel(live.thread_id)
+                await thread.delete()
+            except (discord.NotFound, discord.Forbidden):
+                logger.warning("could not delete collab thread %s", live.thread_id)
+
         self._tasks.pop(collab.id, None)
 
 

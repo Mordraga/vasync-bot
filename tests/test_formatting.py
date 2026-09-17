@@ -1,7 +1,11 @@
 from bot.formatting import (
     discord_timestamp,
+    format_all_declined_message,
+    format_confirmed_message,
     format_match_summary,
+    format_mentions,
     format_plain_window_label,
+    format_proposal_message,
     format_reminder_message,
     format_window_line,
 )
@@ -54,3 +58,32 @@ def test_format_reminder_message_includes_relative_and_absolute():
     message = format_reminder_message(1234567890)
     assert "<t:1234567890:R>" in message
     assert "<t:1234567890:F>" in message
+
+
+def test_format_mentions_joins_ids():
+    assert format_mentions([1, 2]) == "<@1>, <@2>"
+
+
+def test_format_mentions_empty():
+    assert format_mentions([]) == ""
+
+
+def test_format_proposal_message_mentions_initiator():
+    message = format_proposal_message(1234567890, initiator_discord_id=42)
+    assert "<@42>" in message
+    assert "<t:1234567890:F>" in message
+
+
+def test_format_confirmed_message_lists_declines():
+    message = format_confirmed_message(1234567890, accepted_discord_ids=[1, 2], declined_discord_ids=[3])
+    assert "<@1>, <@2>" in message
+    assert "<@3> declined" in message
+
+
+def test_format_confirmed_message_no_declines():
+    message = format_confirmed_message(1234567890, accepted_discord_ids=[1, 2], declined_discord_ids=[])
+    assert "declined" not in message
+
+
+def test_format_all_declined_message_includes_time():
+    assert "<t:1234567890:F>" in format_all_declined_message(1234567890)

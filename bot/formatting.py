@@ -55,3 +55,25 @@ def format_reminder_message(start_unix: int) -> str:
     relative = discord_timestamp(start_unix, "R")
     absolute = discord_timestamp(start_unix, "F")
     return f"Hey! You have a collab {relative}!\nStart time: {absolute}"
+
+
+def format_mentions(discord_ids: list[int]) -> str:
+    return ", ".join(f"<@{discord_id}>" for discord_id in discord_ids)
+
+
+def format_proposal_message(start_unix: int, initiator_discord_id: int) -> str:
+    return (
+        f"<@{initiator_discord_id}> wants to collab at {discord_timestamp(start_unix, 'F')}. "
+        "Accept or decline below."
+    )
+
+
+def format_confirmed_message(start_unix: int, accepted_discord_ids: list[int], declined_discord_ids: list[int]) -> str:
+    lines = [f"Confirmed for {discord_timestamp(start_unix, 'F')} with {format_mentions(accepted_discord_ids)}."]
+    if declined_discord_ids:
+        lines.append(f"{format_mentions(declined_discord_ids)} declined.")
+    return "\n".join(lines)
+
+
+def format_all_declined_message(start_unix: int) -> str:
+    return f"Nobody accepted the proposed time ({discord_timestamp(start_unix, 'F')}) — the collab was cancelled."

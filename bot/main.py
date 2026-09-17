@@ -7,7 +7,13 @@ from discord.ext import commands
 from bot.api_client import VasyncApiClient
 from bot.config import get_settings
 
-EXTENSIONS = ("bot.cogs.collab", "bot.cogs.reminders")
+EXTENSIONS = (
+    "bot.cogs.collab",
+    "bot.cogs.reminders",
+    "bot.cogs.cancel",
+    "bot.cogs.register",
+    "bot.cogs.help",
+)
 
 logging.basicConfig(level=logging.INFO)
 
