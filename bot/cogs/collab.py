@@ -65,6 +65,8 @@ class ConfirmCollabView(discord.ui.View):
         return select
 
     async def _on_select(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer()
+
         start_unix = int(interaction.data["values"][0])
         start_at_utc = datetime.fromtimestamp(start_unix, tz=timezone.utc)
         thread_id = interaction.channel.id if isinstance(interaction.channel, discord.Thread) else None
@@ -75,7 +77,7 @@ class ConfirmCollabView(discord.ui.View):
             )
         except httpx.HTTPStatusError as exc:
             if exc.response.status_code == 404:
-                await interaction.response.edit_message(
+                await interaction.edit_original_response(
                     content="You need to sign into the VAsync dashboard once before you can confirm a collab time.",
                     view=None,
                 )
@@ -90,7 +92,7 @@ class ConfirmCollabView(discord.ui.View):
             except discord.DiscordException:
                 logger.exception("failed to DM %s a collab proposal for collab %s", discord_id, collab.id)
 
-        await interaction.response.edit_message(
+        await interaction.edit_original_response(
             content=f"Proposed <t:{start_unix}:F> — waiting on confirmation from the others.", view=None
         )
 
@@ -101,10 +103,12 @@ class CollabResponseView(discord.ui.View):
         self._collab_id = collab_id
 
     async def _respond(self, interaction: discord.Interaction, accept: bool) -> None:
+        await interaction.response.defer()
+
         result = await interaction.client.api.respond_to_collab(self._collab_id, interaction.user.id, accept)
 
         if result.pending:
-            await interaction.response.edit_message(
+            await interaction.edit_original_response(
                 content="Recorded — waiting on the rest of the group.", view=None
             )
             return
@@ -137,7 +141,7 @@ class CollabResponseView(discord.ui.View):
             except discord.DiscordException:
                 logger.exception("failed to notify %s of collab %s outcome", discord_id, self._collab_id)
 
-        await interaction.response.edit_message(
+        await interaction.edit_original_response(
             content=f"Recorded: you {'accepted' if accept else 'declined'}.", view=None
         )
 

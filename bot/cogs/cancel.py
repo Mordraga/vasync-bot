@@ -39,6 +39,8 @@ class CancelCollabView(discord.ui.View):
         return select
 
     async def _on_select(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer()
+
         collab_id = int(interaction.data["values"][0])
         collab = self._collabs_by_id[collab_id]
 
@@ -69,7 +71,7 @@ class CancelCollabView(discord.ui.View):
             except discord.DiscordException:
                 logger.exception("failed to notify %s that collab %s changed", discord_id, collab_id)
 
-        await interaction.response.edit_message(content="Done.", view=None)
+        await interaction.edit_original_response(content="Done.", view=None)
 
 
 class Cancel(commands.Cog):
