@@ -176,6 +176,10 @@ class Collab(commands.Cog):
         members = [member for member in (user1, user2, user3, user4) if member is not None]
         discord_ids = collect_participant_ids(members)
 
+        if not any(discord_id != interaction.user.id for discord_id in discord_ids):
+            await interaction.followup.send(content="You need at least one other person to collab with.")
+            return
+
         settings = await self.bot.api.get_settings()
         start_date, end_date = build_date_range(settings.match_window_days)
 
@@ -188,7 +192,7 @@ class Collab(commands.Cog):
             await interaction.followup.send(content=content)
             return
 
-        all_members = members if interaction.user in members else [interaction.user, *members]
+        all_members = list({member.id: member for member in (interaction.user, *members)}.values())
         thread = await interaction.channel.create_thread(
             name=build_thread_name(all_members),
             type=discord.ChannelType.private_thread,
