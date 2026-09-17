@@ -92,11 +92,16 @@ class VasyncApiClient:
         response.raise_for_status()
 
     async def upsert_user(
-        self, discord_id: int, display_name: str, timezone: str, role: str
+        self, discord_id: int, display_name: str, timezone: str, role_ids: list[int]
     ) -> None:
         response = await self._client.put(
             f"/users/{discord_id}",
-            json={"discord_id": discord_id, "display_name": display_name, "timezone": timezone, "role": role},
+            json={
+                "discord_id": discord_id,
+                "display_name": display_name,
+                "timezone": timezone,
+                "role_ids": role_ids,
+            },
             headers=self._service_headers(),
         )
         response.raise_for_status()

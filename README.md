@@ -25,7 +25,7 @@ immediately without a bot restart.
 ## Running locally
 
 ```bash
-cp .env.example .env   # DISCORD_TOKEN, guild/role IDs, SERVICE_TOKEN, VASYNC_API_BASE_URL
+cp .env.example .env   # DISCORD_TOKEN, guild ID, SERVICE_TOKEN, VASYNC_API_BASE_URL
 pip install -e ".[dev]"
 python -m bot.main
 ```
