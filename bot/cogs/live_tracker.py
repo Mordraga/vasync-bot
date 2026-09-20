@@ -102,11 +102,16 @@ class LiveTracker(commands.Cog):
             return
 
         for user in newly_live:
+            url = f"https://twitch.tv/{user.twitch_username}"
+            embed = discord.Embed(
+                title="🔴 Signal detected.",
+                description="has no-clipped back into reality.",
+                url=url,
+                color=discord.Color.red(),
+            )
+            embed.add_field(name="Watch live", value=url)
             try:
-                await channel.send(
-                    f"🔴 **Signal detected.** <@{user.discord_id}> has no-clipped back into reality — "
-                    f"twitch.tv/{user.twitch_username}"
-                )
+                await channel.send(content=f"<@{user.discord_id}>", embed=embed)
             except discord.DiscordException:
                 logger.exception("failed to post live announcement for %s", user.discord_id)
 
