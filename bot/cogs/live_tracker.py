@@ -104,7 +104,7 @@ class LiveTracker(commands.Cog):
         for user in newly_live:
             try:
                 await channel.send(
-                    f"🔴 **Signal detected.** <@{user.discord_id}> has surfaced — "
+                    f"🔴 **Signal detected.** <@{user.discord_id}> has no-clipped back into reality — "
                     f"twitch.tv/{user.twitch_username}"
                 )
             except discord.DiscordException:
