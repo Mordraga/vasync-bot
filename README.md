@@ -16,11 +16,19 @@ Discord's own `<t:...>` markup render them per viewer.
 - `bot/cogs/collab.py` - `/collab` slash command + the confirm-a-window UI.
 - `bot/cogs/reminders.py` - schedules and (on restart) rehydrates
   confirmed-collab reminders.
+- `bot/twitch_client.py` - minimal Twitch Helix client (app access token +
+  Get Streams) used only by `bot/cogs/live_tracker.py`.
+- `bot/cogs/live_tracker.py` - polls Twitch for every entity with a
+  Twitch link registered (set from the dashboard) and pushes live/offline
+  status to vasync-database; `/live` reads that cached status back. Stays
+  disabled (logs a warning) if `TWITCH_CLIENT_ID`/`TWITCH_CLIENT_SECRET`
+  aren't set.
 
-The reminder lead time and `/collab` match window aren't hardcoded here -
-both cogs call `VasyncApiClient.get_settings()` each time they need them,
-so changes staff make in the dashboard's admin panel take effect
-immediately without a bot restart.
+The reminder lead time, `/collab` match window, and live-poll interval
+aren't hardcoded here - cogs call `VasyncApiClient.get_settings()` each
+time they need them, so changes staff make in the dashboard's admin panel
+take effect without a bot restart (the poll loop itself still finishes its
+current sleep before picking up a changed interval).
 
 ## Running locally
 

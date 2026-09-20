@@ -4,7 +4,15 @@ import httpx
 
 from bot.config import Settings
 from bot.identity import CallerIdentity
-from bot.schemas import BotSettings, Collab, CollabCancelResult, CollabMatch, CollabRespondResult
+from bot.schemas import (
+    BotSettings,
+    Collab,
+    CollabCancelResult,
+    CollabMatch,
+    CollabRespondResult,
+    LiveEntity,
+    TwitchLinkedUser,
+)
 
 
 class VasyncApiClient:
@@ -125,3 +133,21 @@ class VasyncApiClient:
         response = await self._client.get("/settings", headers=self._service_headers())
         response.raise_for_status()
         return BotSettings.model_validate(response.json())
+
+    async def list_twitch_linked(self) -> list[TwitchLinkedUser]:
+        response = await self._client.get("/users/twitch-linked", headers=self._service_headers())
+        response.raise_for_status()
+        return [TwitchLinkedUser.model_validate(item) for item in response.json()]
+
+    async def update_live_status(self, discord_id: int, is_live: bool) -> None:
+        response = await self._client.put(
+            f"/users/{discord_id}/live-status",
+            json={"is_live": is_live},
+            headers=self._service_headers(),
+        )
+        response.raise_for_status()
+
+    async def list_live_entities(self) -> list[LiveEntity]:
+        response = await self._client.get("/users/live", headers=self._service_headers())
+        response.raise_for_status()
+        return [LiveEntity.model_validate(item) for item in response.json()]

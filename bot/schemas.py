@@ -52,3 +52,15 @@ class CollabCancelResult(BaseModel):
 class BotSettings(BaseModel):
     reminder_lead_minutes: int
     match_window_days: int
+    live_poll_interval_minutes: int
+
+
+class TwitchLinkedUser(BaseModel):
+    discord_id: int
+    twitch_username: str
+
+
+class LiveEntity(BaseModel):
+    discord_id: int
+    display_name: str
+    twitch_username: str

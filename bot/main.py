@@ -12,6 +12,7 @@ EXTENSIONS = (
     "bot.cogs.reminders",
     "bot.cogs.cancel",
     "bot.cogs.register",
+    "bot.cogs.live_tracker",
     "bot.cogs.help",
 )
 
