@@ -20,8 +20,11 @@ logger = logging.getLogger(__name__)
 
 def format_live_list(entities: list[LiveEntity]) -> str:
     if not entities:
-        return "No one's live right now."
-    lines = [f"🔴 **{entity.display_name}** — twitch.tv/{entity.twitch_username}" for entity in entities]
+        return "No signals detected. All entities accounted for."
+    lines = [
+        f"🔴 **{entity.display_name}** — signal holding at twitch.tv/{entity.twitch_username}"
+        for entity in entities
+    ]
     return "\n".join(lines)
 
 
@@ -101,7 +104,8 @@ class LiveTracker(commands.Cog):
         for user in newly_live:
             try:
                 await channel.send(
-                    f"🔴 <@{user.discord_id}> just went live — twitch.tv/{user.twitch_username}"
+                    f"🔴 **Signal detected.** <@{user.discord_id}> has surfaced — "
+                    f"twitch.tv/{user.twitch_username}"
                 )
             except discord.DiscordException:
                 logger.exception("failed to post live announcement for %s", user.discord_id)

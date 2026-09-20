@@ -3,7 +3,7 @@ from bot.schemas import LiveEntity
 
 
 def test_format_live_list_empty():
-    assert format_live_list([]) == "No one's live right now."
+    assert format_live_list([]) == "No signals detected. All entities accounted for."
 
 
 def test_format_live_list_includes_name_and_channel():
