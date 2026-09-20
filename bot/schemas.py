@@ -53,6 +53,7 @@ class BotSettings(BaseModel):
     reminder_lead_minutes: int
     match_window_days: int
     live_poll_interval_minutes: int
+    live_announce_channel_id: int | None
 
 
 class TwitchLinkedUser(BaseModel):

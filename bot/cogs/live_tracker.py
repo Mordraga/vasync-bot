@@ -12,7 +12,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
-from bot.schemas import LiveEntity
+from bot.schemas import LiveEntity, TwitchLinkedUser
 from bot.twitch_client import TwitchClient
 
 logger = logging.getLogger(__name__)
@@ -68,12 +68,43 @@ class LiveTracker(commands.Cog):
         if not linked:
             return
 
+        previously_live_ids = {entity.discord_id for entity in await self.bot.api.list_live_entities()}
         live_logins = await self._twitch.get_live_logins([user.twitch_username for user in linked])
+
+        newly_live = [
+            user
+            for user in linked
+            if user.twitch_username.lower() in live_logins and user.discord_id not in previously_live_ids
+        ]
 
         for user in linked:
             await self.bot.api.update_live_status(
                 user.discord_id, user.twitch_username.lower() in live_logins
             )
+
+        if newly_live:
+            await self._announce(newly_live)
+
+    async def _announce(self, newly_live: list[TwitchLinkedUser]) -> None:
+        settings = await self.bot.api.get_settings()
+        if settings.live_announce_channel_id is None:
+            return
+
+        try:
+            channel = self.bot.get_channel(settings.live_announce_channel_id) or await self.bot.fetch_channel(
+                settings.live_announce_channel_id
+            )
+        except discord.DiscordException:
+            logger.exception("could not reach live-announce channel %s", settings.live_announce_channel_id)
+            return
+
+        for user in newly_live:
+            try:
+                await channel.send(
+                    f"🔴 <@{user.discord_id}> just went live — twitch.tv/{user.twitch_username}"
+                )
+            except discord.DiscordException:
+                logger.exception("failed to post live announcement for %s", user.discord_id)
 
     @app_commands.command(name="live", description="See which entities are currently live on Twitch")
     async def live(self, interaction: discord.Interaction) -> None:

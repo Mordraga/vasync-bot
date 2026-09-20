@@ -20,9 +20,13 @@ Discord's own `<t:...>` markup render them per viewer.
   Get Streams) used only by `bot/cogs/live_tracker.py`.
 - `bot/cogs/live_tracker.py` - polls Twitch for every entity with a
   Twitch link registered (set from the dashboard) and pushes live/offline
-  status to vasync-database; `/live` reads that cached status back. Stays
-  disabled (logs a warning) if `TWITCH_CLIENT_ID`/`TWITCH_CLIENT_SECRET`
-  aren't set.
+  status to vasync-database; `/live` reads that cached status back. Also
+  posts a one-line announcement to `live_announce_channel_id` (staff
+  setting, dashboard admin panel) the moment someone transitions from
+  offline to live - not on every poll, and never for someone already
+  live. Stays disabled (logs a warning) if
+  `TWITCH_CLIENT_ID`/`TWITCH_CLIENT_SECRET` aren't set; announcements stay
+  off (no error) if no channel is configured.
 
 The reminder lead time, `/collab` match window, and live-poll interval
 aren't hardcoded here - cogs call `VasyncApiClient.get_settings()` each
